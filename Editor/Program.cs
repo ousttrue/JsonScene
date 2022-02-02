@@ -38,7 +38,7 @@ namespace Editor
         }
 
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
 #nullable disable
             var moduleHandle = Kernel32.GetModuleHandle(null);
@@ -80,9 +80,15 @@ namespace Editor
             }
 
             // imgui
+            var scene = new JsonScene.Scene();
             using (var gui = new GuiApp())
             {
                 var imguiInputHandler = new ImGuiInputHandler(hwnd);
+
+                foreach (var arg in args)
+                {
+                    scene.Load(arg);
+                }
 
                 s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
                 User32.ShowWindow(hwnd, ShowWindowCommand.Normal);

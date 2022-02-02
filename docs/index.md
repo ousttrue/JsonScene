@@ -10,4 +10,6 @@ ImGui と D3D11 で実装する。
 
 ```{toctree}
 project/index
+imgui/index
+gltf/index
 ```

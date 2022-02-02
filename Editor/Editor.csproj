@@ -16,4 +16,8 @@
     <PackageReference Include="Vortice.D3DCompiler" Version="1.5.0" />
     <PackageReference Include="Vortice.Direct3D11" Version="1.5.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JsonScene\JsonScene.csproj" />
+  </ItemGroup>
 </Project>

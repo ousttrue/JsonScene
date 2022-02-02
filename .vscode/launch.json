@@ -10,7 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/Editor/bin/Debug/net6.0-windows/Editor.dll",
-            "args": [],
+            "args": [
+                "${env:GLTF_SAMPLE_MODELS}/2.0/Avocado/glTF-Binary/Avocado.glb",
+            ],
             "cwd": "${workspaceFolder}/Editor",
             "console": "internalConsole",
             "stopAtEntry": false
