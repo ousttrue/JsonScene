@@ -1,0 +1,55 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "sphinx-autobuild",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/Scripts/sphinx-autobuild.exe docs _build --open-browser --port=0",
+            "options": {
+                "env": {
+                    "PATH": "${workspaceFolder}\\.venv\\Scripts;${env:PATH}"
+                }
+            },
+            "problemMatcher": [],
+            "isBackground": true
+        },
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Editor/Editor.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/Editor/Editor.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/Editor/Editor.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
