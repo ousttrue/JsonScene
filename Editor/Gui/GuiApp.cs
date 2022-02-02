@@ -105,5 +105,17 @@ namespace Editor
             ImGui.DockSpace(dockspace_id, Vector2.Zero, ImGuiDockNodeFlags.PassthruCentralNode);
             ImGui.End();
         }
+
+        public void LoadPath(string path)
+        {
+            var scene = JsonScene.Scene.LoadPath(path);
+            if (scene == null)
+            {
+                return;
+            }
+            var name = $"json###{Path.GetFileName(path)}";
+            var tree = new JsonTree(name, scene.Gltf);
+            _docks.Add(new Dock(name, "", tree.Show));
+        }
     }
 }

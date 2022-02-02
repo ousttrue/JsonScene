@@ -4,14 +4,20 @@ namespace JsonScene
 {
     public class Scene
     {
-        public JsonNode? _gltf;
-        public Memory<byte> _bin;
+        public JsonObject Gltf { get; }
+        Memory<byte> _bin;
 
-        public bool LoadPath(string path)
+        public Scene(JsonObject gltf, Memory<byte> bin)
+        {
+            Gltf = gltf;
+            _bin = bin;
+        }
+
+        public static Scene? LoadPath(string path)
         {
             if (!File.Exists(path))
             {
-                return false;
+                return null;
             }
 
             switch (Path.GetExtension(path).ToLower())
@@ -24,7 +30,7 @@ namespace JsonScene
             }
         }
 
-        public bool LoadGlb(Memory<byte> bytes)
+        public static Scene? LoadGlb(Memory<byte> bytes)
         {
             bytes = Glb.Header(bytes);
             GlbChunk jsonChunk;
@@ -35,11 +41,14 @@ namespace JsonScene
             return Load(jsonChunk.Data, binChunk.Data);
         }
 
-        public bool Load(Memory<byte> json, Memory<byte> bin)
+        public static Scene? Load(Memory<byte> json, Memory<byte> bin)
         {
-            _gltf = JsonNode.Parse(json.Span);
-            _bin = bin;
-            return _gltf != null;
+            var gltf = JsonNode.Parse(json.Span);
+            if (gltf == null)
+            {
+                return null;
+            }
+            return new Scene(gltf.AsObject(), bin);
         }
     }
 }

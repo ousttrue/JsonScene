@@ -1,4 +1,5 @@
-﻿//based on https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp
+﻿#nullable disable
+//based on https://github.com/ocornut/imgui/blob/master/examples/imgui_impl_dx11.cpp
 
 using System;
 using System.Collections.Generic;

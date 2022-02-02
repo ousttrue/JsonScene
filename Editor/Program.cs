@@ -80,14 +80,14 @@ namespace Editor
             }
 
             // imgui
-            var scene = new JsonScene.Scene();
             using (var gui = new GuiApp())
             {
                 var imguiInputHandler = new ImGuiInputHandler(hwnd);
 
                 foreach (var arg in args)
                 {
-                    scene.LoadPath(arg);
+                    gui.LoadPath(arg);
+                    break;
                 }
 
                 s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
