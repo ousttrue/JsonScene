@@ -18,3 +18,7 @@
 </Project>
 ```
 
+```{toctree}
+createwindow
+clearswapchain
+```
