@@ -149,26 +149,21 @@ namespace VorticeImGui
         // }
     }
 
-    class Program
+    static class Program
     {
         const uint PM_REMOVE = 1;
+        const string CLASS_NAME = "WndClass";
+        const string WINDOW_NAME = "ImGui";
+        const int WIDTH = 800;
+        const int HEIGHT = 600;
+
+        static Dictionary<IntPtr, App> windows = new Dictionary<IntPtr, App>();
 
         [STAThread]
         static void Main()
         {
-            new Program().Run();
-        }
 
-        bool quitRequested;
-
-        // ID3D11Device device;
-        // ID3D11DeviceContext deviceContext;
-
-        Dictionary<IntPtr, App> windows = new Dictionary<IntPtr, App>();
-
-        void Run()
-        {
-            // D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out device, out deviceContext);
+            // D3D11.D3D11CreateDevice(null, DriverType.Hardware, DeviceCreationFlags.None, null, out ID3D11Device device, out ID3D11DeviceContext deviceContext).CheckError();
 
 #nullable disable
             var moduleHandle = Kernel32.GetModuleHandle(null);
@@ -183,15 +178,32 @@ namespace VorticeImGui
                 CursorHandle = User32.LoadCursor(IntPtr.Zero, SystemCursor.IDC_ARROW),
                 BackgroundBrushHandle = IntPtr.Zero,
                 IconHandle = IntPtr.Zero,
-                ClassName = "WndClass",
+                ClassName = CLASS_NAME,
             };
+            if (User32.RegisterClassEx(ref wndClass) == 0)
+            {
+                throw new Exception();
+            }
 
-            User32.RegisterClassEx(ref wndClass);
+            var screenWidth = User32.GetSystemMetrics(SystemMetrics.SM_CXSCREEN);
+            var screenHeight = User32.GetSystemMetrics(SystemMetrics.SM_CYSCREEN);
+            var x = (screenWidth - WIDTH) / 2;
+            var y = (screenHeight - HEIGHT) / 2;
+            var style = WindowStyles.WS_OVERLAPPEDWINDOW;
+            var styleEx = WindowExStyles.WS_EX_APPWINDOW | WindowExStyles.WS_EX_WINDOWEDGE;
+            var windowRect = new Rect(0, 0, WIDTH, HEIGHT);
+            User32.AdjustWindowRectEx(ref windowRect, style, false, styleEx);
+            var windowWidth = windowRect.Right - windowRect.Left;
+            var windowHeight = windowRect.Bottom - windowRect.Top;
+            var hwnd = User32.CreateWindowEx(
+                (int)styleEx, CLASS_NAME, WINDOW_NAME, (int)style,
+                x, y, windowWidth, windowHeight,
+                IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
-            var win32window = new Win32Window(wndClass.ClassName, "Vortice ImGui", 800, 600);
+
             // var app = new App(win32window, device, deviceContext);
             // windows.Add(win32window.Handle, app);
-            User32.ShowWindow(win32window.Handle, ShowWindowCommand.Normal);
+            User32.ShowWindow(hwnd, ShowWindowCommand.Normal);
 
             // app.Show();
 
@@ -203,17 +215,13 @@ namespace VorticeImGui
                     User32.DispatchMessage(ref msg);
                     if (msg.Value == (uint)WindowMessage.Quit)
                     {
-                        quitRequested = true;
                         break;
                     }
                 }
-
-                // foreach (var window in windows.Values)
-                //     window.UpdateAndDraw();
             }
         }
 
-        IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
+        static IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
         {
             // App window;
             // windows.TryGetValue(hWnd, out window);
