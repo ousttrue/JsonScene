@@ -128,6 +128,13 @@ namespace VorticeImGui
             var io = ImGui.GetIO();
             switch (msg)
             {
+                case WindowMessage.Size:
+                    var width = Utils.Loword((int)lParam);
+                    var height = Utils.Hiword((int)lParam);
+                    io.DisplaySize.X = width;
+                    io.DisplaySize.Y = height;
+                    break;
+
                 case WindowMessage.LButtonDown:
                 case WindowMessage.LButtonDoubleClick:
                 case WindowMessage.RButtonDown:
