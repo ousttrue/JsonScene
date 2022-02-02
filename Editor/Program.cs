@@ -12,8 +12,8 @@ namespace Editor
         const uint PM_REMOVE = 1;
         const string CLASS_NAME = "WndClass";
         const string WINDOW_NAME = "ImGui";
-        const int WIDTH = 800;
-        const int HEIGHT = 600;
+        const int WIDTH = 1920;
+        const int HEIGHT = 1024;
 
         delegate bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam);
         static Dictionary<IntPtr, ProcessMessage> s_windows = new Dictionary<IntPtr, ProcessMessage>();
@@ -80,54 +80,50 @@ namespace Editor
             }
 
             // imgui
-            ImGui.CreateContext();
-            var io = ImGui.GetIO();
-            var imguiInputHandler = new ImGuiInputHandler(hwnd);
-
-            s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
-            User32.ShowWindow(hwnd, ShowWindowCommand.Normal);
-
-            var stopwatch = Stopwatch.StartNew();
-            TimeSpan lastFrameTime = default;
-
-            using (var devAndSwapchain = new DeviceAndSwapchain())
-            using (var imguiRenderer = new ImGuiRenderer(devAndSwapchain.Device, devAndSwapchain.DeviceContext))
+            using (var gui = new GuiApp())
             {
+                var imguiInputHandler = new ImGuiInputHandler(hwnd);
 
-                while (true)
+                s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
+                User32.ShowWindow(hwnd, ShowWindowCommand.Normal);
+
+                var stopwatch = Stopwatch.StartNew();
+                TimeSpan lastFrameTime = default;
+                var io = ImGui.GetIO();
+
+                using (var devAndSwapchain = new DeviceAndSwapchain())
+                using (var imguiRenderer = new ImGuiRenderer(devAndSwapchain.Device, devAndSwapchain.DeviceContext))
                 {
-                    var isQuit = false;
-                    while (User32.PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
+
+                    while (true)
                     {
-                        User32.TranslateMessage(ref msg);
-                        User32.DispatchMessage(ref msg);
-                        if (msg.Value == (uint)WindowMessage.Quit)
+                        var isQuit = false;
+                        while (User32.PeekMessage(out var msg, IntPtr.Zero, 0, 0, PM_REMOVE))
                         {
-                            isQuit = true;
+                            User32.TranslateMessage(ref msg);
+                            User32.DispatchMessage(ref msg);
+                            if (msg.Value == (uint)WindowMessage.Quit)
+                            {
+                                isQuit = true;
+                                break;
+                            }
+                        }
+                        if (isQuit)
+                        {
                             break;
                         }
-                    }
-                    if (isQuit)
-                    {
-                        break;
-                    }
 
-                    imguiInputHandler.Update();
-                    var now = stopwatch.Elapsed;
-                    var delta = now - lastFrameTime;
-                    lastFrameTime = now;
-                    io.DeltaTime = (float)delta.TotalSeconds;
+                        imguiInputHandler.Update();
+                        var now = stopwatch.Elapsed;
+                        var delta = now - lastFrameTime;
+                        lastFrameTime = now;
+                        io.DeltaTime = (float)delta.TotalSeconds;
+                        gui.Update();
 
-                    var color = new Color4(0.5f, 0.2f, 0.1f, 1.0f);
-                    devAndSwapchain.BeginFrame(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y, color);
-                    {
-                        ImGui.NewFrame();
-                        ImGui.ShowDemoWindow();
-                        ImGui.ShowMetricsWindow();
-                        ImGui.Render();
+                        devAndSwapchain.BeginFrame(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y, gui.ClearColor);
                         imguiRenderer.Render(ImGui.GetDrawData());
+                        devAndSwapchain.EndFrame();
                     }
-                    devAndSwapchain.EndFrame();
                 }
             }
         }
