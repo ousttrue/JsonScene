@@ -91,7 +91,13 @@ namespace Editor
 
                     imguiInputHandler.Update();
 
-                    renderer.Render(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y);
+                    var color = new Color4(0.5f, 0.2f, 0.1f, 1.0f);
+                    renderer.BeginFrame(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y, color);
+                    {
+                        //     ImGui.Render();
+                        //     imGuiRenderer.Render(ImGui.GetDrawData());
+                    }
+                    renderer.EndFrame();
                 }
             }
         }
