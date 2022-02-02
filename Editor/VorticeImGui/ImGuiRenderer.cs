@@ -13,7 +13,7 @@ using ImDrawIdx = System.UInt16;
 
 namespace VorticeImGui
 {
-    unsafe public class ImGuiRenderer
+    unsafe public class ImGuiRenderer : IDisposable
     {
         const int VertexConstantBufferSize = 16 * 4;
 
@@ -272,7 +272,9 @@ namespace VorticeImGui
         void CreateDeviceObjects()
         {
             var vertexShaderCode =
-                @"                    cbuffer vertexBuffer : register(b0)                     {
+                @"
+                    cbuffer vertexBuffer : register(b0) 
+                    {
                         float4x4 ProjectionMatrix; 
                     };
 

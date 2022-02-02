@@ -5,14 +5,18 @@ using Vortice.Mathematics;
 
 namespace Editor
 {
-    class Device : IDisposable
+    class DeviceAndSwapchain : IDisposable
     {
         ID3D11Device _device;
+        public ID3D11Device Device => _device;
+
         ID3D11DeviceContext _deviceContext;
+        public ID3D11DeviceContext DeviceContext => _deviceContext;
+
         IDXGISwapChain? _swapChain;
         ID3D11RenderTargetView? _rtv;
 
-        public Device()
+        public DeviceAndSwapchain()
         {
             var flags = DeviceCreationFlags.BgraSupport; // for D2D
 #if DEBUG
@@ -67,7 +71,7 @@ namespace Editor
         {
             if (_swapChain != null)
             {
-                _swapChain.Present(0, PresentFlags.None);
+                _swapChain.Present(1, PresentFlags.None);
             }
         }
 

@@ -3,10 +3,10 @@ using System.Runtime.CompilerServices;
 using Vortice.Mathematics;
 using ImGuiNET;
 using VorticeImGui;
+using System.Diagnostics;
 
 namespace Editor
 {
-
     static class Program
     {
         const uint PM_REMOVE = 1;
@@ -17,6 +17,25 @@ namespace Editor
 
         delegate bool ProcessMessage(WindowMessage msg, UIntPtr wParam, IntPtr lParam);
         static Dictionary<IntPtr, ProcessMessage> s_windows = new Dictionary<IntPtr, ProcessMessage>();
+        static IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
+        {
+            if (s_windows.TryGetValue(hWnd, out ProcessMessage processMessage))
+            {
+                if (processMessage((WindowMessage)msg, wParam, lParam))
+                {
+                    return IntPtr.Zero;
+                }
+            }
+
+            switch ((WindowMessage)msg)
+            {
+                case WindowMessage.Destroy:
+                    User32.PostQuitMessage(0);
+                    break;
+            }
+
+            return User32.DefWindowProc(hWnd, msg, wParam, lParam);
+        }
 
         [STAThread]
         static void Main()
@@ -68,7 +87,11 @@ namespace Editor
             s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
             User32.ShowWindow(hwnd, ShowWindowCommand.Normal);
 
-            using (var renderer = new Device())
+            var stopwatch = Stopwatch.StartNew();
+            TimeSpan lastFrameTime = default;
+
+            using (var devAndSwapchain = new DeviceAndSwapchain())
+            using (var imguiRenderer = new ImGuiRenderer(devAndSwapchain.Device, devAndSwapchain.DeviceContext))
             {
 
                 while (true)
@@ -90,36 +113,23 @@ namespace Editor
                     }
 
                     imguiInputHandler.Update();
+                    var now = stopwatch.Elapsed;
+                    var delta = now - lastFrameTime;
+                    lastFrameTime = now;
+                    io.DeltaTime = (float)delta.TotalSeconds;
 
                     var color = new Color4(0.5f, 0.2f, 0.1f, 1.0f);
-                    renderer.BeginFrame(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y, color);
+                    devAndSwapchain.BeginFrame(hwnd, (int)io.DisplaySize.X, (int)io.DisplaySize.Y, color);
                     {
-                        //     ImGui.Render();
-                        //     imGuiRenderer.Render(ImGui.GetDrawData());
+                        ImGui.NewFrame();
+                        ImGui.ShowDemoWindow();
+                        ImGui.ShowMetricsWindow();
+                        ImGui.Render();
+                        imguiRenderer.Render(ImGui.GetDrawData());
                     }
-                    renderer.EndFrame();
+                    devAndSwapchain.EndFrame();
                 }
             }
-        }
-
-        static IntPtr WndProc(IntPtr hWnd, uint msg, UIntPtr wParam, IntPtr lParam)
-        {
-            if (s_windows.TryGetValue(hWnd, out ProcessMessage processMessage))
-            {
-                if (processMessage((WindowMessage)msg, wParam, lParam))
-                {
-                    return IntPtr.Zero;
-                }
-            }
-
-            switch ((WindowMessage)msg)
-            {
-                case WindowMessage.Destroy:
-                    User32.PostQuitMessage(0);
-                    break;
-            }
-
-            return User32.DefWindowProc(hWnd, msg, wParam, lParam);
         }
     }
 }
