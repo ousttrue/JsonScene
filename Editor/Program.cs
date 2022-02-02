@@ -87,7 +87,7 @@ namespace Editor
 
                 foreach (var arg in args)
                 {
-                    scene.Load(arg);
+                    scene.LoadPath(arg);
                 }
 
                 s_windows.Add(hwnd, imguiInputHandler.ProcessMessage);
