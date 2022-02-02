@@ -1,9 +1,28 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using ImGuiNET;
 using Vortice.Mathematics;
 
 namespace Editor
 {
+
+    class Pin<T> : IDisposable
+    where T : struct
+    {
+        GCHandle _handle;
+        public IntPtr Ptr => _handle.AddrOfPinnedObject();
+
+        public Pin(T[] value)
+        {
+            _handle = GCHandle.Alloc(value, GCHandleType.Pinned);
+        }
+
+        public void Dispose()
+        {
+            _handle.Free();
+        }
+    }
+
     public class GuiApp : IDisposable
     {
         public Color4 ClearColor = new Color4(0.2f, 0.2f, 0.4f, 1.0f);
@@ -16,8 +35,30 @@ namespace Editor
             var io = ImGui.GetIO();
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
 
+            var fontSize = 18.0f;
+
             var range = io.Fonts.GetGlyphRangesJapanese();
-            io.Fonts.AddFontFromFileTTF("C:/Windows/Fonts/msgothic.ttc", 18, default, range);
+            io.Fonts.AddFontFromFileTTF("C:/Windows/Fonts/msgothic.ttc", fontSize, default, range);
+
+            var bytes = FontAwesome47.GetOrDownload();
+            var config = new ImFontConfig[] {      new ImFontConfig{
+                    FontDataOwnedByAtlas = 1,
+                    OversampleH = 3, // FIXME: 2 may be a better default?
+                    OversampleV = 1,
+                    GlyphMaxAdvanceX = float.MaxValue,
+                    RasterizerMultiply = 1.0f,
+                    EllipsisChar = ushort.MaxValue,
+                } };
+            config[0].MergeMode = 1;
+            config[0].GlyphMinAdvanceX = fontSize; // Use if you want to make the icon monospaced
+            var icon_ranges = new ushort[] { (ushort)FontAwesome.Portable.FontAwesomeIcon.Glass, (ushort)FontAwesome.Portable.FontAwesomeIcon.Fonticons, 0 };
+            using (var bytesPin = new Pin<byte>(bytes))
+            using (var rangePin = new Pin<ushort>(icon_ranges))
+            using (var configPin = new Pin<ImFontConfig>(config))
+            {
+                io.Fonts.AddFontFromMemoryTTF(bytesPin.Ptr, bytes.Length, fontSize, new ImFontConfigPtr(configPin.Ptr), rangePin.Ptr);
+            }
+
             io.Fonts.Build();
 
             InitDocks();
@@ -42,6 +83,8 @@ namespace Editor
                         var vec4 = ClearColor.ToVector4();
                         ImGui.ColorPicker4("clear color", ref vec4);
                         ClearColor = new Color4(vec4.X, vec4.Y, vec4.Z, vec4.W);
+
+                        ImGui.TextUnformatted(new string(new char[] { (char)FontAwesome.Portable.FontAwesomeIcon.Bell }));
                     }
                     ImGui.End();
                 }
